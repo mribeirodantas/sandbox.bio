@@ -6,6 +6,7 @@ let loading = {
 	editor: false,
 	pyodide: false,
 };
+let output = "";
 
 async function initPython(){
 	console.log("Initialize Python...")
@@ -15,7 +16,9 @@ async function initPython(){
 
 	try {
 		pyodide = await loadPyodide({
-			indexURL : "https://cdn.jsdelivr.net/pyodide/v0.18.0/full/"
+			indexURL : "https://cdn.jsdelivr.net/pyodide/v0.18.0/full/",
+			stdout: (text) => output += text,
+			stderr: (text) => output += text,
 		});
 		console.log(pyodide.runPython("1 + 2"));
 	} catch (error) {
@@ -58,9 +61,12 @@ async function initEditor()
 				// Method that will be executed when the action is triggered.
 				// @param editor The editor instance is passed in as a convinience
 				run: function(ed) {
-					// alert("i'm running => " + ed.getPosition());
-					console.log(pyodide.runPython( editor.getValue() + `\n\ntest()` ))
-					
+					output = "";
+					try {
+						pyodide.runPython( ed.getValue() + `\n\ntest()` );
+					} catch (error) {
+						output = error
+					}
 					return null;
 				}
 			});
@@ -72,8 +78,7 @@ async function initEditor()
 	}
 }
 
-async function init()
-{
+async function init() {
 	console.log("init")
 	if(!loading.pyodide)
 		initPython();
@@ -82,7 +87,6 @@ async function init()
 	if(!loading.pyodide || !loading.editor)
 		setTimeout(init, 400);
 }
-
 init();
 </script>
 
@@ -93,4 +97,6 @@ init();
 
 <div bind:this={divEditor} id="container-editor" style="height: 50%"></div>
 
-<!-- <button on:click={initEditor}>Run</button> -->
+<div>
+	<pre>{output}</pre>
+</div>
