@@ -5,6 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 import Home from "./routes/Home.svelte";
 import Tutorial from "./tutorials/Tutorial.svelte";
+import TutorialCode from "./tutorials/TutorialCode.svelte";
 import Terminal from "./terminal/Terminal.svelte";
 import Listings from "./components/Listings.svelte";
 import { config } from "./stores/config";
@@ -62,6 +63,8 @@ const params = new URL(window.location).searchParams;
 		<div class="p-2" style="background-color:#000">
 			<Terminal {intro} files={$tutorials[1].files} />
 		</div>
+	{:else if path.startsWith("/ide")}
+		<TutorialCode />
 	{/if}
 </main>
 
