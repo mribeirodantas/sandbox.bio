@@ -10,48 +10,14 @@ export let step = 0;
 
 // State
 const tutorial = $tutorials.find(t => t.id == id);
-const tocToggle = () => tocOpen = !tocOpen;
 let tocOpen = false;
 let stepInfo = {};
-
-// Reactive statements
-$: nextStep(step);
-
-function nextStep(step)
-{
-	stepInfo = tutorial.steps[step];
-
-	// Update URL
-	const url = new URL(window.location);
-	if(+url.searchParams.get("step") != +step) {
-		url.searchParams.set("step", step);
-
-		// Handle analytics before updating the URL
-		try {
-			fetch(`${$config.api}/ping`, {
-				method: "POST",
-				mode: "no-cors",
-				body: JSON.stringify({
-					tutorial: tutorial.id,
-					from: +new URL(window.location).searchParams.get("step"),
-					to: +new URL(url).searchParams.get("step")
-				})
-			});
-		} catch (error) {}
-
-		window.history.pushState({}, "", url);
-	}
-
-	// Scroll to the top when navigate pages
-	if(document.getElementById("tutorial-sidebar"))
-		document.getElementById("tutorial-sidebar").scrollTop = 0;
-}
 </script>
 
 <div class="container-fluid pb-3">
 	<div class="d-grid gap-3" style="grid-template-columns: 1fr 2fr; height:85vh; max-height:85vh">
 		<div class="bg-light border rounded-3 p-2 d-flex align-items-end flex-column">
-			<div id="tutorial-sidebar" class="w-100 p-2 mb-auto" style="max-height:77vh; overflow-y:scroll; overflow-x:hidden">
+			<div id="tutorial-sidebar" class="w-100 p-2 mb-auto" style="max-height:80vh; overflow-y:scroll; overflow-x:hidden">
 				<h4>{stepInfo.name || tutorial.name}</h4>
 				{#if stepInfo.subtitle}
 					<h6>{@html stepInfo.subtitle}</h6>
@@ -78,49 +44,9 @@ function nextStep(step)
 					</div>
 				</div>
 			</div>
-
-			<div class="w-100 p-2 border-top pt-4">
-				<div class="row">
-					<div class="d-flex justify-content-between">
-						<div>
-							<button type="button" class="btn btn-sm" on:click={() => step--} class:btn-primary={step != 0} class:btn-secondary={step == 0} disabled={step == 0}>&larr; Previous</button>
-							<button class="btn btn-sm" on:click={() => step++} class:btn-primary={step != tutorial.steps.length - 1} class:btn-secondary={step == tutorial.steps.length - 1} disabled={step == tutorial.steps.length - 1}>Next &rarr;</button>	
-						</div>
-						<div>
-							<a href="https://github.com/sandbox-bio/feedback/discussions/categories/questions" target="_blank">
-								<span class="badge rounded-pill bg-secondary">Help</span>
-							</a>
-							<span on:click={tocToggle} class="badge rounded-pill bg-info">{step + 1} / {tutorial.steps.length}</span>
-						</div>
-					</div>
-				</div>
-			</div>
 		</div>
 		<div class="border rounded-3 p-2">
 			<IDE />
 		</div>
 	</div>
 </div>
-
-<!-- TODO: this throws "Uncaught TypeError: $context is undefined" when click a lesson, but still seems to work -->
-<Offcanvas header="Lessons" placement="end" isOpen={tocOpen} toggle={tocToggle}>
-	<DropdownItem header>Introduction</DropdownItem>
-	{#each tutorial.steps as s, i}
-		{#if s.header}
-			<DropdownItem header><br />{s.name}</DropdownItem>
-		{/if}
-		<DropdownItem on:click={() => step = i}>
-			{#if i == step}
-				&rarr; <strong>{@html s.subtitle || s.name}</strong>
-			{:else}
-				<span style="visibility:hidden">&rarr;</span> {@html s.subtitle || s.name}
-			{/if}
-		</DropdownItem>
-	{/each}
-</Offcanvas>
-
-<style>
-.rounded-pill:hover {
-	cursor: pointer;
-}
-</style>
