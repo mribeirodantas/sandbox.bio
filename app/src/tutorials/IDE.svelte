@@ -39,7 +39,7 @@ async function initEditor()
 		require.config({ paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs" }});
 		require(["vs/editor/editor.main"], () => {
 			editor = monaco.editor.create(divEditor, {
-				value: `def test():\n\tprint(123)\n`,
+				value: `def answer(t):\n\treturn t.replace('T', 'U')\n\nprint(answer('GATGGAACTTGACTACGTAAATT'))`,
 				theme: "vs-light",
 				language: "python",
 				minimap: { enabled: false }
@@ -63,7 +63,11 @@ async function initEditor()
 				run: function(ed) {
 					output = "";
 					try {
-						pyodide.runPython( ed.getValue() + `\n\ntest()` );
+						pyodide.runPython(ed.getValue());
+						const answerVal = pyodide.runPython("answer('GATGGAACTTGACTACGTAAATT')");
+						const expectedVal = "GAUGGAACUUGACUACGUAAAUU";
+						output += `\n\nOutput  : ${answerVal}\nExpected: ${expectedVal}`
+						output += answerVal == expectedVal ? '\nCorrect' : "\nIncorrect";
 					} catch (error) {
 						output = error
 					}
@@ -95,7 +99,7 @@ init();
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/loader.min.js"></script>
 </svelte:head>
 
-<div bind:this={divEditor} id="container-editor" style="height: 50%"></div>
+<div bind:this={divEditor} id="container-editor" style="height: 50%;"></div>
 
 <div>
 	<pre>{output}</pre>
