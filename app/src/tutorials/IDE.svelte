@@ -36,6 +36,22 @@ onMount(() => {
 		}
 	});
 });
+
+async function main(){
+	let pyodide = await loadPyodide({
+		indexURL : "https://cdn.jsdelivr.net/pyodide/v0.18.0/full/"
+	});
+	console.log(pyodide.runPython("1 + 2"));
+}
+
 </script>
 
+<svelte:head>
+	<script src="https://cdn.jsdelivr.net/pyodide/v0.18.0/full/pyodide.js"></script>
+
+
+</svelte:head>
+
 <div bind:this={containerElt} id="container-editor" style="height: 50%"></div>
+
+<button on:click={main}>Run</button>
