@@ -39,7 +39,7 @@ async function initEditor()
 		require.config({ paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs" }});
 		require(["vs/editor/editor.main"], () => {
 			editor = monaco.editor.create(divEditor, {
-				value: `def answer(t):\n\treturn t.replace('T', 'U')\n\nprint(answer('GATGGAACTTGACTACGTAAATT'))`,
+				value: `def answer(t):\n\treturn t.replace('T', 'U')\n\n# This should print GAUGGAACUUGACUACGUAAAUU\nprint(answer('GATGGAACTTGACTACGTAAATT'))`,
 				theme: "vs-light",
 				language: "python",
 				minimap: { enabled: false }
@@ -66,7 +66,7 @@ async function initEditor()
 						pyodide.runPython(ed.getValue());
 						const answerVal = pyodide.runPython("answer('GATGGAACTTGACTACGTAAATT')");
 						const expectedVal = "GAUGGAACUUGACUACGUAAAUU";
-						output += `\n\nOutput  : ${answerVal}\nExpected: ${expectedVal}`
+						output += `\n\n-------------------\n\nOutput  : ${answerVal}\nExpected: ${expectedVal}`
 						output += answerVal == expectedVal ? '\nCorrect' : "\nIncorrect";
 					} catch (error) {
 						output = error
