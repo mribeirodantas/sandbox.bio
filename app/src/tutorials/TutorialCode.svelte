@@ -8,8 +8,8 @@ export let id = "bedtools-intro";
 
 // State
 let exercise = {
-	title: `<img src="/images/rosalind.png" alt="Rosalind.info logo" width="100"><br />Transcribing DNA into RNA`,
-	subtitle: ``,
+	title: `Transcribing DNA into RNA`,  // <img src="/images/rosalind.png" alt="Rosalind.info logo" width="100"><br />
+	subtitle: `A &nbsp;<img src="/images/rosalind.png" alt="Rosalind.info logo" width="100"> exercise`,
 	url: "http://rosalind.info/problems/rna",
 	tags: ["String Algorithms"]
 };
