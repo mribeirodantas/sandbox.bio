@@ -84,7 +84,9 @@ $: if(ready) initTerminal();               // Ask for user input once ready
 async function initTerminal() {
 	await $CLI.fsLoad($tutorial);
 	nbInit++;
-	input();
+	// If we were just offscreen (e.g. vim), add extra \n to avoid the PS1 overlapping on itself
+	input($status.offscreen ? "\n" : null);
+	$status.offscreen = false;
 	saveFS();
 }
 
@@ -100,7 +102,7 @@ async function saveFS() {
 onMount(async () => {
 	// Only register handlers/show intro the first time we load the terminal.
 	// For example, when exit from vim, don't want to show the intro again.
-	if(!$status.app) {
+	if(!$status.offscreen) {
 		// Register handlers
 		$xterm.onKey(handleShortcuts);
 		$xterm.onData(handleAutocomplete);

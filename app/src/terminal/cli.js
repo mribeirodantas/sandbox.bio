@@ -448,6 +448,7 @@ const coreutils = {
 		const contents = await _aioli.cat(path);
 		status.set({
 			...get(status),
+			offscreen: true,
 			vim: {
 				[path]: contents
 			}
