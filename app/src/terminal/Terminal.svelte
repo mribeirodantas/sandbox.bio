@@ -41,6 +41,7 @@ const AUTOCOMPLETE = {
 	awk: [],
 	gawk: [],
 	grep: [],
+	vim: [],
 	// Open/download files
 	open: [], download: [],
 	// Host info
@@ -97,13 +98,17 @@ async function saveFS() {
 
 // On mount
 onMount(async () => {
-	// Register handlers
-	$xterm.onKey(handleShortcuts);
-	$xterm.onData(handleAutocomplete);
+	// Only register handlers/show intro the first time we load the terminal.
+	// For example, when exit from vim, don't want to show the intro again.
+	if(!$status.app) {
+		// Register handlers
+		$xterm.onKey(handleShortcuts);
+		$xterm.onData(handleAutocomplete);
 
-	// Write out an intro if any specified
-	if(intro)
-		$xterm.writeln(intro);
+		// Write out an intro if any specified
+		if(intro)
+			$xterm.writeln(intro);
+	}
 
 	// Prepare UI but don't allow input yet
 	$xterm.open(divTerminal);

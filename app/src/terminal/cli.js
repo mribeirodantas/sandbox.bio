@@ -6,7 +6,7 @@
 // * Ctrl + C doesn't stop running process (e.g. `sleep 2 & sleep 5` + ^C does nothing)
 
 // Imports
-import { readable } from "svelte/store";
+import { get, readable } from "svelte/store";
 import parse from "shell-parse";         // Transforms a bash command into an AST
 import columnify from "columnify";       // Prettify columnar output
 import prettyBytes from "pretty-bytes";  // Prettify number of bytes
@@ -15,6 +15,7 @@ import ansiRegex from "ansi-regex";      // Regex for all ANSI codes
 import localforage from "localforage";
 import Aioli from "@biowasm/aioli";
 import { env, getLocalForageKey, MAX_FILE_SIZE_TO_CACHE } from "../stores/config";
+import { status } from "../stores/status";
 
 // State
 let _aioli = {};   // Aioli object
@@ -88,6 +89,8 @@ async function transform(cmd)
 		cmd.command.value = "bowtie2-align-s";
 	else if(tool == "awk")
 		cmd.command.value = "gawk";
+	else if(tool == "vi")
+		cmd.command.value = "vim";
 	else if(tool == "ll") {
 		cmd.command.value = "ls";
 		cmd.args.push({type: "literal", value: "-l"});
@@ -436,6 +439,22 @@ const coreutils = {
 
 		return contents;
 	},
+
+	// -------------------------------------------------------------------------
+	// vim/vi file
+	// -------------------------------------------------------------------------
+	vim: async args => {
+		const path = args._[0];
+		const contents = await _aioli.cat(path);
+		status.set({
+			...get(status),
+			vim: {
+				[path]: contents
+			}
+		});
+
+		return "";
+	}
 };
 
 

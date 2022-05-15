@@ -5,6 +5,7 @@ import { status } from "./stores/status";
 import { tutorials } from "./stores/tutorials";
 import { tutorial } from "./stores/tutorial";
 import Terminal from "./terminal/Terminal.svelte";
+import Vim from "./terminal/Vim.svelte";
 import IDE from "./components/IDE.svelte";
 
 export let id;
@@ -120,9 +121,13 @@ $tutorial.step = step;
 			</div>
 		{/if}
 		{#if $tutorial.terminal !== false}
-			<div id="terminal-wrapper" class="border rounded-3 p-2">
-				<Terminal on:status={event => $status.terminal = event.detail} files={$tutorial.files} init={$tutorial.init} tools={$tutorial.tools} intro={$tutorial.intro} pwd={$tutorial.pwd} />
-			</div>
+			{#if $status.vim}
+				<Vim files={$status.vim} />
+			{:else}
+				<div id="terminal-wrapper" class="border rounded-3 p-2">
+					<Terminal on:status={event => $status.terminal = event.detail} files={$tutorial.files} init={$tutorial.init} tools={$tutorial.tools} intro={$tutorial.intro} pwd={$tutorial.pwd} />
+				</div>
+			{/if}
 		{/if}
 		{#if $tutorial.ide === true}
 			<IDE
