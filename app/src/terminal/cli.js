@@ -444,7 +444,7 @@ const coreutils = {
 	// vim/vi file
 	// -------------------------------------------------------------------------
 	vim: async args => {
-		const path = args._[0];
+		const path = args._[0] || "untitled";
 		const contents = await _aioli.cat(path);
 		status.set({
 			...get(status),
