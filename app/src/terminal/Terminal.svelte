@@ -41,7 +41,7 @@ const AUTOCOMPLETE = {
 	awk: [],
 	gawk: [],
 	grep: [],
-	vim: [],
+	vim: [], vi: [],
 	// Open/download files
 	open: [], download: [],
 	// Host info
