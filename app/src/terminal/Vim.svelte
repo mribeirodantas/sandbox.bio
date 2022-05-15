@@ -30,10 +30,11 @@ onMount(async () => {
 	// Docs: <https://github.com/rhysd/vim.wasm/blob/wasm/wasm/README.md#program-arguments>
 	vim.start({
 		files: files,
-		cmdArgs: [ Object.keys(files)[0], "-c", 'set guifont=monospace:h15' ],
+		cmdArgs: [ Object.keys(files)[0], "-c", 'set guifont=Monaco:h15' ],
 	});
 });
 </script>
 
-<canvas bind:this={elCanvas} style="height:83vh; max-height:85vh; max-width:100%; overflow:hidden;"></canvas>
-<input bind:this={elInput} autocomplete="off" autofocus />
+<canvas bind:this={elCanvas} style="height:85vh; max-height:85vh; max-width:100%; overflow:hidden; padding:10px; background-color:rgb(41,44,51)"></canvas>
+<!-- svelte-ignore a11y-autofocus -->
+<input bind:this={elInput} autocomplete="off" style="position:absolute; top:0; opacity:0" autofocus />
