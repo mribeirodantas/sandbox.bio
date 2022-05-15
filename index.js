@@ -33,8 +33,11 @@ addEventListener("fetch", event => {
 		// Use separate router for API
 		if(url.pathname.startsWith("/api/"))
 			response = routerAPI.handle(event.request);
+		else if(url.pathname.startsWith("/biowasm/")) {
+			const path = url.pathname.replace("/biowasm/", "");
+			response = fetch(`https://cdn.biowasm.com/v2/${path}`);
 		// But use Cloudflare Worker Sites logic for everything else
-		else
+		} else
 			response = handleStaticPage(event);
 	} catch (e) {
 		response = new Response("Internal Error", { status: 500 });
@@ -50,10 +53,14 @@ addEventListener("fetch", event => {
 // Retrieve KV value given a path, or show 404
 async function handleStaticPage(event) {
 	try {
-		return await getAssetFromKV(event, {
+		const response = await getAssetFromKV(event, {
 			mapRequestToAsset: handlePrefix,
 			cacheControl: CACHE_CONTROL
 		});
+		response.headers.set("Cross-Origin-Embedder-Policy", "require-corp");
+		response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
+		response.headers.set("Access-Control-Allow-Origin", "*");
+		return response;
 	} catch (e) {
 		return new Response("404 Not Found", { status: 404 });
 	}
