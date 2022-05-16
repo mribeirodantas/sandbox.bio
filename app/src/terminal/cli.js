@@ -70,7 +70,7 @@ async function init(config={})
 			const url = `${window.location.origin}/${file}`;
 			const [path] = await _aioli.mount([ url ]);  // e.g. ["/shared/data/localhost:5000-data-terminal-basics-orders.tsv"]
 			// Rename Aioli-mounted URLs that are automatically given long names
-			await exec(`mv ${path} ${filename}`);				
+			await exec(`mv ${path} ${filename}`);
 		}
 	}
 }

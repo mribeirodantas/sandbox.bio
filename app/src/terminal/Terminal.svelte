@@ -133,10 +133,6 @@ onMount(async () => {
 	}
 });
 
-// Resize xterm when the window size changes
-function handleResize() {
-	$xtermAddons.fit.fit();
-}
 
 // =============================================================================
 // Sidebar operations
@@ -167,6 +163,26 @@ async function mountLocalFile(event) {
 	}).join("\n");
 	input(`\n\u001b[0;32m# Files mounted:\n${pathsTxt}\u001b[0m\n\n`);
 }
+
+// Reset files needed for current tutorial. Doesn't modify other files.
+async function resetTutorialFiles() {
+	if(!confirm("This will reset the files included in this tutorial. Are you sure?"))
+		return;
+
+	for(let file of $tutorial.files) {
+		// Get filename without path (e.g. "orders.tsv")
+		const filename = file.split("/").pop();
+
+		// Delete file
+		await $CLI.exec(`rm ${filename}`);
+
+		// Re-mount the file
+		const url = `${window.location.origin}/${file}`;
+		const [path] = await $CLI.utils.mount([ url ]);  // e.g. ["/shared/data/localhost:5000-data-terminal-basics-orders.tsv"]
+		await $CLI.exec(`mv ${path} ${filename}`);
+	}
+}
+
 
 // =============================================================================
 // xterm.js 
@@ -346,7 +362,7 @@ function getSharedSubstring(array){
 
 
 <!-- Terminal -->
-<div bind:this={divTerminal} use:watchResize={handleResize} style="opacity: { ready ? 1 : 0.6 }; height:85vh; max-height:85vh; overflow:hidden">
+<div bind:this={divTerminal} use:watchResize={() => $xtermAddons.fit.fit()} style="opacity: { ready ? 1 : 0.6 }; height:85vh; max-height:85vh; overflow:hidden">
 	<!-- Hamburger menu for settings -->
 	<div class="cli-options text-muted">
 		<button class="btn btn-outline-secondary p-0 m-0 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -354,6 +370,9 @@ function getSharedSubstring(array){
 		</button>
 		<ul class="dropdown-menu">
 			<li><button class="dropdown-item" on:click={() => fileInput.click()}>Mount local files</button></li>
+			{#if $tutorial.id !== "playground"}
+				<li><button class="dropdown-item" on:click={resetTutorialFiles}>Reset tutorial files</button></li>
+			{/if}
 			<li><button class="dropdown-item" on:click={exportTerminal}>Export as HTML</button></li>
 			<li><button class="dropdown-item" on:click={modalKbdToggle}>Keyboard Shortcuts</button></li>
 		</ul>
