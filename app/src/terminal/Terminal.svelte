@@ -21,10 +21,14 @@ const TOOLS_DEFAULT = [
 	{ loading: "lazy", tool: "bedtools", version: "2.29.2" },
 	{ loading: "lazy", tool: "bowtie2", program: "bowtie2-align-s", version: "2.4.2" },
 	{ loading: "lazy", tool: "minimap2", version: "2.22" },
+	{ loading: "lazy", tool: "ivar", version: "1.3.1" },
 	{ loading: "lazy", tool: "fastp", version: "0.20.1" },
 	{ loading: "lazy", tool: "jq", version: "1.6" },
 	{ loading: "lazy", tool: "gawk", version: "5.1.0", reinit: true },
 	{ loading: "lazy", tool: "grep", version: "3.7", reinit: true  },
+	{ loading: "lazy", tool: "htslib", program: "tabix", version: "1.10", reinit: true  },
+	{ loading: "lazy", tool: "htslib", program: "htsfile", version: "1.10", reinit: true  },
+	{ loading: "lazy", tool: "htslib", program: "bgzip", version: "1.10", reinit: true  },
 	...COREUTILS.map(program => ({ program, tool: "coreutils", loading: "lazy", version: "8.32", reinit: true }))
 ];
 
@@ -36,7 +40,9 @@ const AUTOCOMPLETE = {
 	bcftools: ["view", "index", "call", "query", "merge"],
 	bowtie2: [],
 	minimap2: [],
+	ivar: ["trim", "variants", "filtervariants", "consensus", "getmasked", "removereads", "version"],
 	fastp: [],
+	tabix: [], htsfile: [], bgzip: [],
 	jq: [],
 	awk: [],
 	gawk: [],
