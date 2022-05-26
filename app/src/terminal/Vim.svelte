@@ -5,10 +5,6 @@ import { status } from "stores/status";
 import { CLI } from "terminal/cli";
 
 let elCanvas, elInput;
-export let files;  // { "path": "contents" }
-
-// Assume the file we're editing is the first one we see
-$: path = Object.keys($status.vim)[0];
 
 // Initialize vim.wasm
 onMount(async () => {
@@ -20,7 +16,7 @@ onMount(async () => {
 
 	// When vim exits, save the changes made to the file
 	vim.onVimExit = async contents => {
-		await $CLI.utils.writeFile(path, contents);
+		await $CLI.utils.writeFile($status.vim.pathFSLocal, contents);
 		// Make sure to sync FS before <Terminal /> reloads and resets the FS
 		await $CLI.fsSave();
 		$status.vim = false;
@@ -29,8 +25,10 @@ onMount(async () => {
 	// Start vim
 	// Docs: <https://github.com/rhysd/vim.wasm/blob/wasm/wasm/README.md#program-arguments>
 	vim.start({
-		files: files,
-		cmdArgs: [ Object.keys(files)[0], "-c", 'set guifont=Monaco:h15' ],
+		files: {
+			[$status.vim.pathFSVim]: $status.vim.contents
+		},
+		cmdArgs: [ $status.vim.pathFSVim, "-c", 'set guifont=Monaco:h15' ],
 	});
 });
 </script>

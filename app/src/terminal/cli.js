@@ -444,13 +444,16 @@ const coreutils = {
 	// vim/vi file
 	// -------------------------------------------------------------------------
 	vim: async args => {
-		const path = args._[0] || "untitled";
-		const contents = await _aioli.cat(path);
+		const pathFSLocal = args._[0] || "untitled";
+		const pathFSVim = pathFSLocal.split("/").pop();  // doesn't support paths
+		const contents = await _aioli.cat(pathFSLocal);
 		status.set({
 			...get(status),
 			offscreen: true,
 			vim: {
-				[path]: contents
+				pathFSLocal,
+				pathFSVim,
+				contents
 			}
 		});
 

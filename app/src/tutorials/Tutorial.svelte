@@ -122,7 +122,7 @@ $tutorial.step = step;
 		{/if}
 		{#if $tutorial.terminal !== false}
 			{#if $status.vim}
-				<Vim files={$status.vim} />
+				<Vim />
 			{:else}
 				<div id="terminal-wrapper" class="border rounded-3 p-2">
 					<Terminal on:status={event => $status.terminal = event.detail} files={$tutorial.files} init={$tutorial.init} tools={$tutorial.tools} intro={$tutorial.intro} pwd={$tutorial.pwd} />
