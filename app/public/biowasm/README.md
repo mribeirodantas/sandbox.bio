@@ -36,6 +36,8 @@ do
 	[[ "$toolPrograms" == "null" ]] && toolPrograms="[\"$toolName\"]"
 	toolPrograms=($(jq -rc '.[]' <<< $toolPrograms))
 
+	echo -e $toolName"\t"$toolVersion;
+
 	mkdir -p ${toolName}/${toolVersion}/
 	curl -s -o ${toolName}/${toolVersion}/config.json "${URL_CDN}/${toolName}/${toolVersion}/config.json"
 	for program in "${toolPrograms[@]}"; do
