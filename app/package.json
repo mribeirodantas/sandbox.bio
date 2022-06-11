@@ -5,7 +5,7 @@
   "scripts": {
     "build": "./build.sh && rollup -c",
     "dev": "rollup -c -w",
-    "start": "cd public && python3 server.py 2222",
+    "start": "git apply sirv-cli.patch; sirv public --no-clear",
     "test": "cypress run",
     "test-local": "cypress open"
   },

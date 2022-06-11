@@ -1,0 +1,16 @@
+index 7810262..6d0a358 100644
+--- a/node_modules/sirv-cli/index.js.bak
++++ b/node_modules/sirv-cli/index.js
+@@ -41,6 +41,12 @@ module.exports = function (dir, opts) {
+ 		}
+ 	}
+ 
++	// git diff --no-index -- node_modules/sirv-cli/index.js.bak node_modules/sirv-cli/index.js
++	opts.setHeaders = res => {
++		res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
++		res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
++	}
++
+ 	let server;
+ 	let fn = sirv(dir, opts);
+ 	let { hrtime, stdout } = process;
