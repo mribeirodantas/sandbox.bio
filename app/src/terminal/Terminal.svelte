@@ -25,6 +25,7 @@ const TOOLS_DEFAULT = [
 	{ loading: "lazy", tool: "seqtk", version: "1.3" },
 	{ loading: "lazy", tool: "kalign", version: "3.3.1" },
 	{ loading: "lazy", tool: "ivar", version: "1.3.1" },
+	{ loading: "lazy", tool: "fasttree", version: "2.1.11" },
 	{ loading: "lazy", tool: "fastp", version: "0.20.1" },
 	{ loading: "lazy", tool: "jq", version: "1.6" },
 	{ loading: "lazy", tool: "gawk", version: "5.1.0", reinit: true },
@@ -42,6 +43,7 @@ const AUTOCOMPLETE = {
 	bowtie2: [],
 	minimap2: [],
 	ivar: ["trim", "variants", "filtervariants", "consensus", "getmasked", "removereads", "version"],
+	fasttree: [],
 	fastp: [],
 	seqtk: ["seq", "comp", "sample", "subseq", "fqchk", "mergepe", "trimfq", "hety", "gc", "mutfa", "mergefa", "famask", "dropse", "rename", "randbase", "cutN", "listhet"],
 	kalign: [],
@@ -189,6 +191,15 @@ async function resetTutorialFiles() {
 		const url = `${window.location.origin}/${file}`;
 		const [path] = await $CLI.utils.mount([ url ]);  // e.g. ["/shared/data/localhost:5000-data-terminal-basics-orders.tsv"]
 		await $CLI.exec(`mv ${path} ${filename}`);
+	}
+}
+
+// Clear command-line history
+async function clearHistory() {
+	const historyController = $xtermAddons?.echo?.history;
+	if(historyController) {
+		historyController.entries = [];
+		historyController.cursor = 0;
 	}
 }
 
@@ -383,6 +394,7 @@ function getSharedSubstring(array){
 				<li><button class="dropdown-item" on:click={resetTutorialFiles}>Reset tutorial files</button></li>
 			{/if}
 			<li><button class="dropdown-item" on:click={exportTerminal}>Export as HTML</button></li>
+			<li><button class="dropdown-item" on:click={clearHistory}>Clear command history</button></li>
 			<li><button class="dropdown-item" on:click={modalKbdToggle}>Keyboard Shortcuts</button></li>
 		</ul>
 	</div>
