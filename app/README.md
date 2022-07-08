@@ -6,6 +6,54 @@
   * `dev`: Development branch, pushing there runs tests if changes to app/* were made + auto deploys to dev.sandbox.bio
   * `main`: Production branch; merge dev into main to deploy to stg.sandbox.bio
 
+
+## vim.wasm
+
+Vim uses ncurses and I haven’t found a way to compile it to wasm. There’s a repo out there called ncurses for emscripten but they say it doesn’t work for most ncurses programs, only the simple ones.
+
+Vim.wasm doesn’t compile ncurses, it actually disables it and replaces it with drawing the vim interface using canvas!
+
+Another challenge is that vim is interactive so like games it has an infinite loop that they transformed with (I think) asyncify.
+
+Vim.wasm runs in a web worker.
+
+### To replace
+
+```js
+_this.sendMessage({kind:"exit",status:e.status})
+```
+with 
+```js
+_this.sendMessage({kind:"exit",status:
+  this.FS.readFile(  Object.keys(_this.files)[0]  , { encoding: "utf8" })
+})
+```
+
+and 
+
+```js
+this.perf=msg.perf;
+```
+with 
+```js
+this.perf=msg.perf; this.files=msg.files;
+```
+
+## CORS/COEP/CORP issue
+
+Only used for development on localhost due to issue with CORS/COEP/CORP interaction:
+
+`vim.wasm` uses `SharedArrayBuffer`, so it needs the following headers to be set:
+
+```
+Cross-Origin-Embedder-Policy=require-corp
+Cross-Origin-Opener-Policy=same-origin
+```
+
+But, once we set those headers, then fetching from biowasm doesn't work anymore due to CORS?
+
+Interestingly, it works for fetching `aioli.worker.js` (runs in main thread), but not getting `base.js` (runs in WebWorker).
+
 ## Testing
 
 * `npm run test` will launch all the tests in headless way
@@ -61,7 +109,6 @@ setTimeout(async () => {
 // const data = await _aioli.filesystem("readFile", "cpg.bed", { encoding: "binary" })
 // console.log(await _aioli.filesystem("writeFile", "cpg2.bed", data, { encoding: "binary" }))
 ```
-
 
 ## Tutorials
 
