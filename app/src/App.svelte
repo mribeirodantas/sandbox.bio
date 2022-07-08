@@ -6,6 +6,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 import Home from "./routes/Home.svelte";
 import Tutorial from "./tutorials/Tutorial.svelte";
+import Sandbox from "./sandboxes/Sandbox.svelte";
 import Login from "./components/Login.svelte";
 import Listings from "./components/Listings.svelte";
 import { supabase, user, progress, envInit } from "./stores/config";
@@ -123,11 +124,20 @@ onMount(async () => {
 			</ul>
 		</li>
 		<li class="nav-item">
-			<a href="/rosalind" class="nav-link" class:active={path == "/rosalind" || (path == "/tutorials" && params.get("id") == "rosalind")}>Python Exercises</a>
-		</li>
-		<li class="nav-item">
 			<a href="/playground" class="nav-link" class:active={path == "/playground"}>Playground</a>
 		</li>
+		<!-- <li class="nav-item dropdown">
+			<a href="#" class="nav-link dropdown-toggle" class:active={path == "/playground"} id="navPlaygrounds" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+				Playgrounds
+			</a>
+			<ul class="dropdown-menu" aria-labelledby="navPlaygrounds">
+				<li><a class="dropdown-item" href="/playground">Command Line</a></li>
+				<li><a class="dropdown-item" href="/sandboxes?id=awk">awk</a></li>
+				<li><a class="dropdown-item" href="/sandboxes?id=grep">grep</a></li>
+				<li><a class="dropdown-item" href="/sandboxes?id=sed">sed</a></li>
+				<li><a class="dropdown-item" href="/sandboxes?id=jq">jq (JSON)</a></li>
+			</ul>
+		</li> -->
 		<li class="nav-item">
 			{#if $user == null}
 				<button class="btn btn-link text-decoration-none" on:click={() => loginModalOpen = !loginModalOpen}>Log in</button>
@@ -160,7 +170,7 @@ onMount(async () => {
 </div>
 
 <!-- Main layout -->
-<main role="main" class="ps-4 pe-4">
+<main class="px-4">
 	{#if path == "/"}
 		<Home />
 	{:else if path.startsWith("/tutorials")}
@@ -173,6 +183,8 @@ onMount(async () => {
 		<Tutorial id="playground" />
 	{:else if path.startsWith("/rosalind")}
 		<Tutorial id="rosalind" step={+params.get("step") || 0} />
+	{:else if path.startsWith("/sandboxes")}
+		<Sandbox tool={params.get("id") || "awk"} />
 	{/if}
 </main>
 
