@@ -62,7 +62,7 @@ const AUTOCOMPLETE = {
 	// Aliases
 	ll: [],
 	// Simulated coreutils
-	pwd: [], cd: [], mv: [], rm: [], cp: [], mkdir: [], rmdir: [], touch: [],
+	pwd: [], cd: [], mv: [], rm: [], cp: [], mkdir: [], rmdir: [], touch: [], vi: [], vim: [],
 };
 
 
