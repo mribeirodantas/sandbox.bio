@@ -23,6 +23,7 @@ import man_comm from "../man/comm.txt";
 import man_cut from "../man/cut.txt";
 import man_date from "../man/date.txt";
 import man_echo from "../man/echo.txt";
+import man_find from "../man/find.txt";
 import man_fold from "../man/fold.txt";
 import man_gawk from "../man/gawk.txt";
 import man_grep from "../man/grep.txt";
@@ -158,6 +159,7 @@ async function exec(cmd, callback=console.warn)
 		if(cmd.includes("awk") && awkVarMatch) {
 			for(let match of awkVarMatch)
 				cmd = cmd.replace(match[0], match[0].replace("=", ESCAPED_EQUAL_SIGN));
+			console.log("Rewrote awk command as:", cmd);
 		}
 
 		try {
@@ -174,9 +176,21 @@ async function exec(cmd, callback=console.warn)
 	// -------------------------------------------------------------------------
 	if(Array.isArray(cmd))
 	{
+		// FIXME: This is a hack to support `samtools view -b abc.bam > def.bam`, which otherwise breaks because binary output isn't supported in biowasm
+		const firstCommand = cmd[0]?.command?.value;
+		const firstRedirects = cmd[0]?.redirects;
+		const firstArgs = cmd[0]?.args;
+		if(firstCommand === "samtools" && firstRedirects?.length === 1 && firstRedirects[0]?.type === "redirectFd" && firstRedirects[0]?.fd === 1 && firstRedirects[0]?.op === ">" && firstArgs?.[0]?.value.includes("view", "sort", "cat", "collate")) {
+			// Append -o "filename", while also supporting variables
+			cmd[0].args.push({ type: "literal", value: "-o" });
+			cmd[0].args.push({ type: "literal", value: await utils.getValue(firstRedirects[0].filename) });
+			cmd[0].redirects = [];
+			console.log("Rewrote samtools command as:", cmd);
+		}
+
+		// Parse commands
 		let output = "";
-		for(let command of cmd)
-		{
+		for(let command of cmd) {
 			// If it's meant to be asynchronous, don't await around; call callback on its own time
 			if(command.control == "&")
 			{
@@ -400,7 +414,34 @@ const coreutils = {
 	// File system management
 	// -------------------------------------------------------------------------
 	mv: args => _fs.rename(args._[0], args._[1]) && "",
-	rm: args => Promise.all(args._.map(async arg => await _fs.unlink(arg))) && "",
+	// Support rm -rf <file> <folder>
+	rm: async args => {
+		// Treat -r as boolean flag, not specific flag for just one file/folder
+		const hasFlagR = args.r != null, hasFlagF = args.f != null;
+		if(hasFlagR && args.r !== true) args._.unshift(args.r); // rm -rf abc ==> r=true, f=abc
+		if(hasFlagF && args.f !== true) args._.unshift(args.f); // rm -fr abc ==> f=true, r=abc
+
+		// Recursively delete files
+		for(const path of args._) {
+			try {
+				const filesAndFolders = !hasFlagR ? [path] : await fsTraverse((path + "/").replaceAll("//", "/"));
+				const files = filesAndFolders.filter(f => !f.endsWith("/"));
+				const folders = filesAndFolders.filter(f => f.endsWith("/"));
+				// Delete files first
+				for(let file of files)
+					await _fs.unlink(file)
+				// Then delete folders
+				for(let folder of folders.reverse())
+					await _fs.rmdir(folder);
+				// Finally, delete the remaining folder itself
+				if(hasFlagR)
+					await _fs.rmdir(path);
+			} catch (error) {
+				return `${path}: Cannot delete files`;
+			}
+		}
+		return "";
+	},
 	pwd: args => _aioli.pwd(),
 	touch: async args => {
 		return Promise.all(args._.map(async path => {
@@ -430,32 +471,32 @@ const coreutils = {
 		}
 		return "";
 	},
+	// Support `mkdir -p <folder1> <folder2> ...`
 	mkdir: async args => {
-		// Support `mkdir -p <folder1> <folder2> ...`
-		const hasFlagP = args.p != null;
 		// Treat -p as boolean flag, not specific flag for just one folder
+		const hasFlagP = args.p != null;
 		if(hasFlagP)
 			args._.unshift(args.p);
-		// Create all folders specified
-		return await Promise.all(args._.map(async arg => {
-			try {
-				if(!hasFlagP)
-					await _aioli.mkdir(arg);
-				else {
-					const folders = arg.split("/");
-					let prefix = "";
-					while(folders.length > 0) {
-						const newFolder = folders.shift();
-						try {
-							await _aioli.mkdir(`${prefix}${newFolder}`);
-						} catch (error) {}
-						prefix += `${newFolder}/`;
-					}
+
+		// For each folder path to create (a/b/c), create all its subpaths in the right order (a, a/b, a/b/c)
+		for(const path of args._) {
+			const subpaths = !hasFlagP ? [path] : fsGeneratePaths(path);
+			for(const subpath of subpaths.filter(s => s !== "")) {
+				try {
+					// Don't try creating folder if it already exists
+					try {
+						if(await _fs.stat(subpath))
+							continue;
+					} catch (error) {}
+					// Create folder
+					await _aioli.mkdir(subpath);
+				} catch (error) {
+					console.error(`Cannot create ${subpath}`, error);
+					return `${subpath}: Cannot create folder\n`;
 				}
-			} catch (error) {
-				return `${arg}: Cannot create folder`;
 			}
-		})) && "";
+		}
+		return "";
 	},
 	rmdir: args => Promise.all(args._.map(async arg => await _fs.rmdir(arg))) && "",
 	mktemp: args => {
@@ -546,6 +587,7 @@ const coreutils = {
 			case "cut": return man_cut;
 			case "date": return man_date;
 			case "echo": return man_echo;
+			case "find": return man_find;
 			case "fold": return man_fold;
 			case "gawk": return man_gawk;
 			case "grep": return man_grep;
@@ -604,9 +646,11 @@ const utils = {
 				arg.value = arg.value.slice(0, -1);
 			const pathBase = arg.value.substring(0, arg.value.lastIndexOf("/") + 1) || "";
 			let pathPattern = arg.value.replace(pathBase, "");
-			if(pathPattern == "*")
-				pathPattern = "";
 			const files = await utils.ls([ pathBase || "." ], true);
+
+			// Expand wildcard to list of file names
+			if(pathPattern === "*")
+				return files.map(f => `${pathBase}${f.name}`);
 
 			// Convert bash regex to JS regex; "*" in bash == ".*" in js; "?" in bash == "." in js
 			const pattern = pathPattern
@@ -617,13 +661,13 @@ const utils = {
 				.replaceAll("###__QUESTION__###", ".");
 			// If user specifies ls *txt, match both hello.txt and my_txt/
 			const re = new RegExp("^" + pattern + "$|" + "^" + pattern + "/$");
-
-			// If find no matches, return original glob value
-			const filesMatching = files.filter(f => f.name.match(re)).map(f => `${pathBase}${f.name}`)
+			const filesMatching = files.filter(f => f.name.match(re)).map(f => `${pathBase}${f.name}`);
 			if(filesMatching.length > 0)
 				return filesMatching;
 			if(pathPattern == "")
 				return [pathBase || "."];
+
+			// If find no matches, return original glob value
 			return arg.value;
 		}
 		else
@@ -792,6 +836,20 @@ async function fsTraverse(path) {
 	return paths;
 }
 
+// Generate list of all subfolder paths
+function fsGeneratePaths(path) {
+	const folders = path.split("/");
+
+	let prefix = "";
+	const result = [];
+	while(folders.length > 0) {
+		const folderName = folders.shift();
+		result.push(`${prefix}${folderName}`);
+		prefix += `${folderName}/`;
+	}
+
+	return result;
+}
 
 // =============================================================================
 // Export CLI as a readable store
