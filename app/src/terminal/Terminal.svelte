@@ -189,6 +189,9 @@ async function mountLocalFile(event) {
 		return `#   ${path}${extra}`;
 	}).join("\n");
 	input(`\n\u001b[0;32m# Files mounted:\n${pathsTxt}\u001b[0m\n\n`);
+
+	// Reset file selection (e.g. if select same file name again, should remount it because contents might be different)
+	event.target.value = "";
 }
 
 // Clear command-line history
@@ -410,7 +413,7 @@ function getSharedSubstring(array){
 </div>
 
 <!-- Hidden input file for mounting local files -->
-<input type="file" on:change={mountLocalFile} bind:this={fileInput} style="display:none" multiple />
+<input type="file" on:change={mountLocalFile} bind:this={fileInput} style="display:none" multiple webkitdirectory />
 
 <!-- Keyboard Shortcuts Modal -->
 <Modal body header="Keyboard Shortcuts" isOpen={modalKbdOpen} toggle={modalKbdToggle}>
