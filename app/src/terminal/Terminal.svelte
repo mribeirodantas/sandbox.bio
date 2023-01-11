@@ -216,6 +216,22 @@ async function input(toPrint)
 		$xterm.write(toPrint);
 	$xterm.focus();
 
+	// https://jameshfisher.com/2017/12/04/how-less-works/
+	// https://stackoverflow.com/a/63526734
+	const MOVE_CURSOR = "\u001B[1;1H";
+	const ALT_BUFFER_START = "\x9B?47h";
+	const ALT_BUFFER_END = "\x9B?47l";
+	const CURSOR_SAVE_POS = "\u001B7";
+	const CURSOR_RESTORE_POS = "\u001B8";
+	$xtermAddons.echo.read(`${CURSOR_SAVE_POS}${MOVE_CURSOR}${ALT_BUFFER_START}This is a test\nof a simple\nversion of the less command`)
+		.then(cmd => {
+			console.log("CMD", cmd)
+			$xterm.write(`${ALT_BUFFER_END}${CURSOR_RESTORE_POS}`);
+		})
+		.catch(console.error);
+
+	return;
+
 	// Prepare prompt, e.g. "guest@sandbox$ "
 	const prompt = $env["PS1"].replaceAll('\\u', $env["USER"]).replaceAll('\\h', $config.hostname);
 	$xtermAddons.echo.read(`\u001b[1;34m${prompt}\u001b[0m`)
@@ -283,6 +299,11 @@ function filter(output) {
 // Keyboard shortcuts
 function handleShortcuts(key)
 {
+	console.log("key", key);
+	if(key.key === "\x1B[A") {
+		console.log("UP")
+		return false;
+	}
 	// Ctrl + L = Clear terminal (also clear input in case user had written something on the line)
 	if(key.domEvent.ctrlKey && key.domEvent.key == "l") {
 		const originalInput = $xtermAddons.echo._input;
