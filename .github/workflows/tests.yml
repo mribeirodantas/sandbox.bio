@@ -23,4 +23,4 @@ jobs:
         run: cd app && npm run dev &
 
       - name: Run tests
-        run: cd app && npm run test
+        run: cd app && npm run test --spec tests/test_ui.cy.js

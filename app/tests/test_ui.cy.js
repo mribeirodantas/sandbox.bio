@@ -1,8 +1,8 @@
-// Test that the exercise functionality works as expected
+// Test that the exercise functionality works as expected.
 
 describe("Test UI", () => {
 	before(() => {
-		cy.visit("http://localhost:8080/tutorials?id=bedtools-intro&step=14");
+		cy.visit("http://localhost:1111/tutorials?id=bedtools-intro&step=14");
 		cy.get("body").get(".spinner-border").should("not.exist");
 		cy.wait(1000);
 	});
