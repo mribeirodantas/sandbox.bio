@@ -1,39 +1,47 @@
 <script>
-import { Spinner, Modal } from "sveltestrap";
+import { onMount } from "svelte";
+import { status } from "./stores/status";
 
-// State
-export let options = {};    // IGV.js options
-export let isOpen = false;  // Whether modal is showing or not
-let igvPromise;             // Resolves when igv.js is done loading
+export let options = {};
+let loading = true;
+let igvDiv;
+let browser = {};
 
-function createIGV() {
-	var igvDiv = document.getElementById("igv-div");
-
+onMount(async() => {
 	// Explicitly specify the reference URLs so that igv.js doesn't try downloading RefSeq genes
-	options.reference = {
-		id: "hg19",
-		name: "Human (hg19)",
-		fastaURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg19/hg19.fasta",
-		indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg19/hg19.fasta.fai",
-		cytobandURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg19/cytoBand.txt",
-		tracks: []
-	};
-	igvPromise = igv.createBrowser(igvDiv, options);
+	if(!options.genome) {
+		options.reference = {
+			id: "hg19",
+			name: "Human (hg19)",
+			fastaURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg19/hg19.fasta",
+			indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg19/hg19.fasta.fai",
+			cytobandURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg19/cytoBand.txt",
+			tracks: []
+		};
+	}
+
+	// Create IGV browser
+	browser = await igv.createBrowser(igvDiv, options);
+	loading = false;
+});
+
+// Allow tutorials to interactively change IGV status
+$: if($status.igv) {
+	// Note that `browser.currentLoci` can give fractional coordinates
+	const locusCurrent = browser.referenceFrameList.map((locus) => locus.getLocusString()).join(" ");
+
+	// Locus change
+	if($status.igv.locus && locusCurrent !== $status.igv.locus) {
+		browser.search($status.igv.locus);
+	}
+
+	// Add a new track
+	if($status.igv.loadTrack) {
+		browser.loadTrack($status.igv.loadTrack);
+	}
 }
 </script>
 
-<svelte:head>
-	<script src="https://cdn.jsdelivr.net/npm/igv@2.13.10/dist/igv.min.js"></script>
-</svelte:head>
-
-<Modal body header="IGV.js" size="xl" on:open={createIGV} toggle={() => isOpen = !isOpen} {isOpen}>
-	{#await igvPromise}
-		<Spinner size="sm" color="primary" type="border" /> Loading...
-	{/await}
-
-	<slot name="before"></slot>
-
-	<div id="igv-div"></div>
-	<br />
-	<slot name="after"></slot>
-</Modal>
+<div style="opacity: { loading ? 0.6 : 1 }">
+	<div bind:this={igvDiv} />
+</div>

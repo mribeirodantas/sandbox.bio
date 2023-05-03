@@ -5,6 +5,7 @@ import { status } from "./stores/status";
 import { tutorials } from "./stores/tutorials";
 import { tutorial } from "./stores/tutorial";
 import Terminal from "./terminal/Terminal.svelte";
+import IGV from "./components/IGV.svelte";
 import IDE from "./components/ExerciseRosalind.svelte";
 
 export let id;
@@ -109,7 +110,7 @@ $tutorial.step = step;
 								<button class="btn btn-sm" on:click={() => step++} class:btn-primary={step != $tutorial.steps.length - 1} class:btn-secondary={step == $tutorial.steps.length - 1} disabled={step == $tutorial.steps.length - 1}><span class="mobile-hide">Next&nbsp;</span>&rarr;</button>
 							</div>
 							<div>
-								<a href="https://github.com/sandbox-bio/feedback/discussions/categories/questions" target="_blank">
+								<a href="https://github.com/sandbox-bio/feedback/discussions/categories/questions" target="_blank" rel="noreferrer">
 									<span class="badge rounded-pill bg-secondary">Help</span>
 								</a>
 								<span on:click={tocToggle} class="badge rounded-pill bg-info">{step + 1} / {$tutorial.steps.length}</span>
@@ -117,11 +118,6 @@ $tutorial.step = step;
 						</div>
 					</div>
 				</div>
-			</div>
-		{/if}
-		{#if $tutorial.terminal !== false}
-			<div id="terminal-wrapper" class="border rounded-3 p-2">
-				<Terminal on:status={event => $status.terminal = event.detail} files={$tutorial.files} init={$tutorial.init} tools={$tutorial.tools} intro={$tutorial.intro} pwd={$tutorial.pwd} />
 			</div>
 		{/if}
 		{#if $tutorial.ide === true}
@@ -133,6 +129,13 @@ $tutorial.step = step;
 				expectedInput={rosalind.sample_data}
 				expectedOutput={rosalind.sample_output}
 				/>
+		{:else if $tutorial.igv === true}
+			{@const config = { ...$tutorial.igvConfig.default, ...$tutorial.igvConfig[step] }}
+			<IGV options={config} />
+		{:else}
+			<div id="terminal-wrapper" class="border rounded-3 p-2">
+				<Terminal on:status={event => $status.terminal = event.detail} files={$tutorial.files} init={$tutorial.init} tools={$tutorial.tools} intro={$tutorial.intro} pwd={$tutorial.pwd} />
+			</div>
 		{/if}
 	</div>
 </div>
