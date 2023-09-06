@@ -5,6 +5,7 @@ import "bootstrap/dist/js/bootstrap.bundle";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 import Home from "./routes/Home.svelte";
+import Community from "./routes/Community.svelte";
 import Tutorial from "./tutorials/Tutorial.svelte";
 import Sandbox from "./playgrounds/Sandbox.svelte";
 import Studio from "./components/Studio.svelte";
@@ -139,6 +140,11 @@ onMount(async () => {
 			</ul>
 		</li>
 		<li class="nav-item">
+			<a href="/community" class="nav-link" class:active={path == "/community"} id="navCommunity" role="button">
+				Community
+			</a>
+		</li>
+		<li class="nav-item">
 			{#if $user == null}
 				<button class="btn btn-link text-decoration-none" on:click={() => loginModalOpen = !loginModalOpen}>Log in</button>
 			{:else}
@@ -189,6 +195,8 @@ onMount(async () => {
 		<Tutorial id="rosalind" step={+params.get("step") || 0} />
 	{:else if path.startsWith("/studio")}
 		<Studio />
+	{:else if path.startsWith("/community")}
+		<Community />
 	{/if}
 </main>
 
